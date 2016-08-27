@@ -1,11 +1,10 @@
 #include "tractgene.h"
 #include "ui_tractgene.h"
-#include "biochemistry/biochemistry.h"
 #include <QDesktopWidget>
 
 int get_cycles_for_rate(int x)
 {
-	double rate = get_leakage_rate(x);
+	double rate = (double) x / (x + 1);
 
 	int cycles = 0;
 	uint8_t max = 255;
@@ -458,8 +457,6 @@ void TractSettings::FlatChecked(bool enabled)
 void TractSettings::tract_list_updated()
 {
 	QStringList tract_list;
-
-	TractData gene = getData();
 
 	int mirror_index = 0;
 	tract_list << "<nothing>";

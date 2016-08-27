@@ -1,5 +1,5 @@
 #include "brainmodel.h"
-#include "catalogue/catalogue_interface.h"
+#include <catalogue.h>
 
 template<>
 std::list<LobeModel *> & BrainModel::list<LobeModel>() { return lobes; }
@@ -176,14 +176,17 @@ QRect BrainModel::viewPort() const
 }
 
 
-void BrainModel::add(LobeGene * gene)
+void BrainModel::add(const GeneHeader * gene)
 {
-	list<LobeModel>().push_back(new LobeModel(*this, QString(gene->header.organ), gene->data));
-}
-
-void BrainModel::add(TractGene * gene)
-{
-	list<TractModel>().push_back(new TractModel(*this, QString(gene->header.organ), gene->data));
+	switch(gene->type)
+	{
+	case LobeType:
+		list<LobeModel>().push_back(new LobeModel(*this, QString(gene->organ), *((LobeData *) (gene + 1)) ));
+	case TractType:
+		list<TractModel>().push_back(new TractModel(*this, QString(gene->organ), *((TractData *) (gene + 1)) ));
+	default:
+		return;
+	}
 }
 
 void BrainModel::remove(LobeModel * it)

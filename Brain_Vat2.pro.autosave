@@ -8,7 +8,7 @@ QT       += core gui opengl
 INCLUDEPATH += /usr/local/include/libfreetures /usr/include/libxml2/
 CONFIG += c++11
 QMAKESPEC=linux-g++-64
-LIBS=-L/usr/local/lib/libfreetures/ -lfreetures -pthread -lm -lpcre16 -L/usr/lib/x86_64-linux-gnu/ -lxml2 -lz
+LIBS=-L/usr/local/lib/libfreetures/ -lfreetures -pthread -lm -lpcre16 -L/usr/lib/x86_64-linux-gnu/ -lxml2
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = BrainInVatKit

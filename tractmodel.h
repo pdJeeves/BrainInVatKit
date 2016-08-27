@@ -1,6 +1,7 @@
 #ifndef TRACTMODEL_H
 #define TRACTMODEL_H
-#include "brain/brain.h"
+#include "lobe.h"
+#include "tract.h"
 #include "brainmodel.h"
 #include "lobemodel.h"
 #include <QPainter>

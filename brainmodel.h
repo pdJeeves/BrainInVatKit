@@ -1,13 +1,11 @@
 #ifndef BRAINMODEL_H
 #define BRAINMODEL_H
-
-#include "freetures/brain/brain.h"
-#include "freetures/behavior/behavior.h"
-
-#include "freetures/genetics/genome.h"
+#include "lobe.h"
+#include "tract.h"
 #include "instinctmodel.h"
 #include "modelcommand.h"
 #include "mainwindow.h"
+#include <genetics.h>
 #include <QMenu>
 #include <QPainter>
 #include <QObject>
@@ -27,7 +25,6 @@ private:
 	
 	std::list<LobeModel*>  lobes;
 	std::list<TractModel*> tracts;
-	std::vector<InstinctModel*> instincts;
 
 	std::list<LobeModel*>  copied_lobes;
 	std::list<TractModel*> copied_tracts;
@@ -169,9 +166,7 @@ public:
 
 	int totalNeurons() const;
 
-	void add(LobeGene * gene);
-	void add(TractGene * gene);
-	void add(InstinctGene * gene);
+	void add(const GeneHeader * gene);
 
 	void remove(LobeModel *);
 	void remove(TractModel *);

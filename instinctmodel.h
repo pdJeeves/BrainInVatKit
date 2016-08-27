@@ -1,6 +1,7 @@
 #ifndef INSTINCTMODEL_H
 #define INSTINCTMODEL_H
-#include "freetures/behavior/behavior.h"
+
+/*
 
 class InstinctModel
 {
@@ -34,5 +35,7 @@ public:
 	}
 
 };
+
+*/
 
 #endif // INSTINCTMODEL_H

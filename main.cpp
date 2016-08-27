@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 
-#include "freetures/catalogue/catalogue_interface.h"
+#include <catalogue.h>
 
 #include <QApplication>
 

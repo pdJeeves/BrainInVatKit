@@ -5,7 +5,9 @@
 #include <QDesktopWidget>
 #include "lobemodel.h"
 #include "tractmodel.h"
-#include "freetures/genetics/gen_range.h"
+#include <genetics.h>
+#include "lobe.h"
+#include "tract.h"
 
 #include "brainmodel.h"
 
@@ -317,48 +319,36 @@ void MainWindow::DocumentOpen()
 
 	brain = new BrainModel(*this);
 	QString file = QFileDialog::getOpenFileName(this, tr("Open Genome File..."), "", tr("Genetics Files (*.gno)"));
-	if(file.length() == 0)
+	if(file.isEmpty())
 	{
 		return;
 	}
 
 	Filename = file;
 
-	struct GeneticHandle handle;
-	QByteArray ba = file.toLatin1();
-    const char *c_str2 = ba.data();
-	if(!genetic_handle_create(&handle, c_str2))
+	GeneticHandle * handle = create_genetic_handle(file.toStdString().c_str());
+	if(!handle)
 	{
 		return;
 	}
 
-	ChromosomeRange chromosomes;
-	chrm_range_create(&chromosomes, &handle);
+	ChromosomeRange * chromosomes = create_chromosome_range(handle);
 
-	GeneRange genes;
-
-	while(chrm_range_pop_front(&chromosomes))
+	while(chrm_range_pop_front(chromosomes))
 	{
-		gene_range_initialize(&genes, &chromosomes);
+		GeneRange * genes = create_gene_range(chromosomes);
 
-		while(gene_range_pop_front(&genes))
+		while(gene_range_pop_front(genes))
 		{
-			if(genes.header->type == LobeType)
-			{
-				brain->add((LobeGene *) (genes.data));
-			}
-			else if(genes.header->type == TractType)
-			{
-				brain->add((TractGene *) (genes.data));
-			}
-			else if(genes.header->type == InstinctType)
-			{
-//				brain->add((InstinctGene *) (genes.data));
-			}
+			brain->add(gene_range_front(genes));
 		}
+
+		free_gene_range(genes);
 	}
 
-	genetic_handle_free(&handle);
+	free_chromosome_range(chromosomes);
+
+	free_genetic_handle(handle);
 
 	for(auto i = brain->list<LobeModel>().begin(); i != brain->list<LobeModel>().end(); ++i)
 	{

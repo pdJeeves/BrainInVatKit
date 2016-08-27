@@ -3,7 +3,8 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
-#include "catalogue/catalogue_interface.h"
+#include <catalogue.h>
+#include <cstdio>
 
 QPointF operator*(const QPointF & a, const QSizeF & b)
 {

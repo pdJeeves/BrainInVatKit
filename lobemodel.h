@@ -1,7 +1,7 @@
 #ifndef LOBEMODEL_H
 #define LOBEMODEL_H
-
-#include "freetures/brain/brain.h"
+#include "lobe.h"
+#include "tract.h"
 #include "brainmodel.h"
 #include <QObject>
 #include <QString>

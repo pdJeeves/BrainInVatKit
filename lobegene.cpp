@@ -1,5 +1,5 @@
 #include <QColorDialog>
-#include "freetures/brain/brain.h"
+#include "lobe.h"
 #include "lobegene.h"
 #include "ui_lobegene.h"
 #include <QDesktopWidget>

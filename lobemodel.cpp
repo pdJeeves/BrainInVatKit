@@ -1,5 +1,8 @@
-#include "freetures/catalogue/catalogue_interface.h"
-#include "brain/brain.h"
+#include <cstdio>
+#include <genetics.h>
+#include <catalogue.h>
+#include "lobe.h"
+#include "tract.h"
 #include "lobemodel.h"
 #include "tractmodel.h"
 #include "lobegene.h"
