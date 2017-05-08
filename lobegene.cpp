@@ -1,5 +1,5 @@
 #include <QColorDialog>
-#include "lobe.h"
+#include "brain/lobe.h"
 #include "lobegene.h"
 #include "ui_lobegene.h"
 #include <QDesktopWidget>
@@ -13,28 +13,29 @@ LobeSettings::LobeSettings(MainWindow * _ownr, LobeModel * data) :
 	ownr     = _ownr;
 	original = data;
 
-	ui->ColorDisplay->color.setRgb(original->data().red, original->data().green, original->data().blue);
+	ui->ColorDisplay->color.setRgb(original->data().color.channel.red, original->data().color.channel.green, original->data().color.channel.blue);
 
+	ui->lineEdit->setMaxLength(LOBE_NAME_LENGTH);
 	ui->lineEdit->setText(original->name);
-	ui->depth->setValue(original->data().depth);
-	ui->depthVal->setNum(original->data().depth);
+	ui->depth->setValue(original->data().size.dimensions.depth);
+	ui->depthVal->setNum(original->data().size.dimensions.depth);
 
-	ui->duty_cycle->setValue(original->data().duty_cycle.activity);
-	ui->dutyVal->setNum(original->data().duty_cycle.activity);
-	ui->period->setValue(original->data().duty_cycle.period);
-	ui->periodVal->setNum(original->data().duty_cycle.period);
+	ui->duty_cycle->setValue(original->data().activity);
+	ui->dutyVal->setNum(original->data().activity);
+	ui->period->setValue(original->data().period);
+	ui->periodVal->setNum(original->data().period);
 
-	ui->activity->setMaximum(original->data().width * original->data().height);
+	ui->activity->setMaximum(original->data().size.dimensions.width * original->data().size.dimensions.height);
 
 	ui->activity->setValue(original->data().activity);
 	ui->activityVal->setNum(original->data().activity);
-	ui->max_boost->setValue(original->data().max_boost);
-	ui->boostVal->setNum(original->data().max_boost);
+	ui->max_boost->setValue(original->data().maxBoost);
+	ui->boostVal->setNum(original->data().maxBoost);
 
 	ui->threshold->setValue(original->data().threshold);
 	ui->threshVal->setNum(original->data().threshold);
-	ui->relax_state->setValue(original->data().relax_state);
-	ui->relax_memory->setValue(original->data().relax_prev);
+	ui->relax_state->setValue(original->data().relaxState);
+	ui->relax_memory->setValue(original->data().relaxPrev);
 
 	QObject::connect(ui->CloseButton, SIGNAL(clicked()), this, SLOT(onClosePushed()));
 	QObject::connect(ui->SetColor, SIGNAL(clicked()), this, SLOT(onSelectColor()));
@@ -68,25 +69,25 @@ void LobeSettings::onClosePushed()
 {
 	LobeData gene;
 
-	gene.posx				= original->data().posx;
-	gene.posy				= original->data().posy;
+	gene.position.dimensions.x				= original->data().position.dimensions.x;
+	gene.position.dimensions.y				= original->data().position.dimensions.y;
 	
-	gene.red				= ui->ColorDisplay->color.red();
-	gene.green				= ui->ColorDisplay->color.green();
-	gene.blue				= ui->ColorDisplay->color.blue();
+	gene.color.channel.red				= ui->ColorDisplay->color.red();
+	gene.color.channel.green				= ui->ColorDisplay->color.green();
+	gene.color.channel.blue				= ui->ColorDisplay->color.blue();
 
-	gene.width				= original->data().width;
-	gene.height				= original->data().height;
-	gene.depth				= ui->depth->value();
+	gene.size.dimensions.width				= original->data().size.dimensions.width;
+	gene.size.dimensions.height				= original->data().size.dimensions.height;
+	gene.size.dimensions.depth				= ui->depth->value();
 	
-	gene.duty_cycle.activity= ui->duty_cycle->value();
-	gene.duty_cycle.period	= ui->period->value();
+	gene.activity= ui->duty_cycle->value();
+	gene.period	= ui->period->value();
 	gene.activity			= ui->activity->value();
-	gene.max_boost			= ui->max_boost->value();
+	gene.maxBoost			= ui->max_boost->value();
 
 	gene.threshold			= ui->threshold->value();
-	gene.relax_state		= ui->relax_state->value();
-	gene.relax_prev			= ui->relax_memory->value();
+	gene.relaxState		= ui->relax_state->value();
+	gene.relaxPrev			= ui->relax_memory->value();
 	
 	original->clearGene(this);
 	original->brain.updateData(original, ui->lineEdit->text(), gene);

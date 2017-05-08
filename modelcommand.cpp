@@ -109,10 +109,10 @@ void MoveCommand::update(const QPointF & pos)
 	new_pos = QPoint((int) n_pos.x(), (int) n_pos.y());
 
 		new_pos = cap(new_pos,
-			QRect(	lobes->identity.data.posx,
-					lobes->identity.data.posy,
-					lobes->identity.data.width,
-					lobes->identity.data.height),
+			QRect(	lobes->identity.data.position.dimensions.x,
+					lobes->identity.data.position.dimensions.y,
+					lobes->identity.data.size.dimensions.width,
+					lobes->identity.data.size.dimensions.height),
 			BrainModel::maxSize());
 
 	new_pos = new_pos + prev_pos;

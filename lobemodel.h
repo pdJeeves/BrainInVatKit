@@ -1,7 +1,11 @@
 #ifndef LOBEMODEL_H
 #define LOBEMODEL_H
-#include "lobe.h"
-#include "tract.h"
+
+extern "C"
+{
+#include "brain/lobe.h"
+#include "brain/tract.h"
+}
 #include "brainmodel.h"
 #include <QObject>
 #include <QString>
@@ -80,15 +84,15 @@ public:
 	inline
 	QColor color() const
 	{
-		return QColor(identity.data.red, identity.data.green, identity.data.blue, 128);
+		return QColor(identity.data.color.channel.red, identity.data.color.channel.green, identity.data.color.channel.blue, 128);
 	}
 
 	inline
 	void setColor(QColor color)
 	{
-		identity.data.red	= color.red();
-		identity.data.green = color.green();
-		identity.data.blue	= color.blue();
+		identity.data.color.channel.red	= color.red();
+		identity.data.color.channel.green = color.green();
+		identity.data.color.channel.blue	= color.blue();
 	}
 
 public:
@@ -119,7 +123,7 @@ public:
 		inline
 		bool exists() const
 		{
-			return cell < (parent.identity.data.width * parent.identity.data.height);
+			return cell < (parent.identity.data.size.dimensions.width * parent.identity.data.size.dimensions.height);
 		}
 
 		inline
@@ -141,7 +145,7 @@ public:
 
 			for(int16_t * ptr = parent.predicted; *ptr != -1; ++ptr)
 			{
-				if(*ptr / parent.identity.data.depth == cell)
+				if(*ptr / parent.identity.data.size.dimensions.depth == cell)
 				{
 					return 1.0;
 				}
@@ -181,7 +185,7 @@ public:
 		int activity() const
 		{
 			if(!exists()) return 0;
-			return parent.identity.active_cycle[cell];
+			return parent.identity.activeCycle[cell];
 		}
 
 		inline
@@ -320,6 +324,7 @@ public:
 	}
 
 	void commit();
+	void finishLoad();
 
 	explicit LobeModel(LobeModel * lobe)
 		: LobeModel(lobe->brain, lobe->name, lobe->identity.data)
@@ -328,7 +333,7 @@ public:
 	explicit LobeModel(BrainModel & brain, const QString & name, const LobeData & data);
 	~LobeModel()
 	{
-		lobe_cell_free(&identity);
+		lobeDestruct(&identity);
 	}
 
 	bool hasChanged() const;

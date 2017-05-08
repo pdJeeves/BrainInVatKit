@@ -6,8 +6,15 @@
 #include "lobemodel.h"
 #include "tractmodel.h"
 #include <genetics.h>
-#include "lobe.h"
-#include "tract.h"
+
+extern "C"
+{
+#include "brain/lobe.h"
+#include "brain/tract.h"
+
+#include "genetics/gen_range.h"
+#include "genetics/chromosomerange.h"
+}
 
 #include "brainmodel.h"
 
@@ -326,33 +333,37 @@ void MainWindow::DocumentOpen()
 
 	Filename = file;
 
-	GeneticHandle * handle = create_genetic_handle(file.toStdString().c_str());
+	GeneticHandle * handle = geneticHandleCreate(file.toStdString().c_str());
+
 	if(!handle)
 	{
 		return;
 	}
 
-	ChromosomeRange * chromosomes = create_chromosome_range(handle);
+	ChromosomeRange * chromosomes = chrmRangeCreate(handle);
 
-	while(chrm_range_pop_front(chromosomes))
+	while(chrmRangePopFront(chromosomes))
 	{
-		GeneRange * genes = create_gene_range(chromosomes);
+		GeneRange genes;
 
-		while(gene_range_pop_front(genes))
+		gene_range_initialize(&genes, chromosomes);
+
+		int err = 0;
+		while((err = gene_range_pop_front(&genes, err)))
 		{
-			brain->add(gene_range_front(genes));
+			brain->add(geneRangeFront(&genes));
 		}
 
-		free_gene_range(genes);
+		gene_range_free(&genes);
 	}
 
-	free_chromosome_range(chromosomes);
+	chrmRangeFree(chromosomes);
 
-	free_genetic_handle(handle);
+	geneticHandleFree(handle);
 
 	for(auto i = brain->list<LobeModel>().begin(); i != brain->list<LobeModel>().end(); ++i)
 	{
-		(*i)->commit();
+		(*i)->finishLoad();
 	}
 
 	for(auto i = brain->list<TractModel>().begin(); i != brain->list<TractModel>().end(); ++i)

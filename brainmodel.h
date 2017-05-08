@@ -1,7 +1,7 @@
 #ifndef BRAINMODEL_H
 #define BRAINMODEL_H
-#include "lobe.h"
-#include "tract.h"
+#include "brain/lobe.h"
+#include "brain/tract.h"
 #include "instinctmodel.h"
 #include "modelcommand.h"
 #include "mainwindow.h"

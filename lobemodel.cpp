@@ -1,8 +1,6 @@
 #include <cstdio>
 #include <genetics.h>
 #include <catalogue.h>
-#include "lobe.h"
-#include "tract.h"
 #include "lobemodel.h"
 #include "tractmodel.h"
 #include "lobegene.h"
@@ -22,30 +20,35 @@ QPoint __attribute((always_inline)) to_point(const QPointF & x)
 LobeModel::LobeModel(BrainModel & brain, const QString & name, const LobeData & data)
 	:	brain(brain),
 		original(data),
-		_box(data.posx, data.posy, data.width, data.height),
+		_box(data.position.dimensions.x, data.position.dimensions.y, data.size.dimensions.width, data.size.dimensions.height),
 		prev_name(name),
 		name(name)
 {
 	memset(&identity, 0, sizeof(identity));
-	lobe_cell_create(&identity, &data);
+	lobeConstruct2(&identity, &data, name.toStdString().c_str());
 	gene = 0L;
 	tract = 0L;
 	flags = (lobeFlags) 0L;
 	predicted = 0L;
 }
 
-void LobeModel::commit()
+void LobeModel::finishLoad()
 {
-	identity.data.posx		= position().x();
-	identity.data.posy		= position().y();
+	identity.data.position.dimensions.x		= position().x();
+	identity.data.position.dimensions.y		= position().y();
 
-	identity.data.width		= _box.width();
-	identity.data.height    = _box.height();
+	identity.data.size.dimensions.width		= _box.width();
+	identity.data.size.dimensions.height    = _box.height();
 
 	LobeData data = identity.data;
 
-	lobe_cell_free(&identity);
-	lobe_cell_create(&identity, &data);
+	lobeDestruct(&identity);
+	lobeConstruct2(&identity, &data, name.toStdString().c_str());
+}
+
+void LobeModel::commit()
+{
+	finishLoad();
 
 	for(auto i = brain.list<TractModel>().begin(); i != brain.list<TractModel>().end(); ++i)
 	{
@@ -64,8 +67,8 @@ void LobeModel::save(FILE * file)
 	const char * _name = name.toStdString().c_str();
 	memcpy(header.organ, _name, sizeof(header.organ));
 	header.bytes = sizeof(original);
-	header.type  = LobeType;
-	header.switch_on_stage = 0;
+	header.type  = gt_Lobe;
+	header.switchOnStage = 0;
 	header.mutability      = 0;
 
 	ExportGene(file, &header, &original);
@@ -97,10 +100,10 @@ void LobeModel::addTract()
 		TractData	 data;
 		memset(&data	, 0, sizeof(data)	);
 
-		strncpy(data.origin_lobe, name.toStdString().c_str(), 16);
-		data.origin_lobe_last = length();
-		data.min_ltw = 64 + 32;
-		data.max_ltw = 64;
+		strncpy(data.originLobe, name.toStdString().c_str(), 16);
+		data.originLobeLast = length();
+		data.minLtw = tw_minWeight + 32;
+		data.maxLtw = tw_minWeight;
 
 		tract = new TractModel(brain, QString(""), data);
 		if(brain.setNewGene(tract))
@@ -314,7 +317,7 @@ void LobeModel::draw(QPainter & painter, QPointF cursor, const QRectF  & viewpor
 	cursor.setY(cursor.y() - y());
 
 	painter.setPen(QPen(Qt::white));
-	if(identity.data.depth)
+	if(identity.data.size.dimensions.depth)
 	{
 		painter.setBrush(QColor(255, 255, 255, 128));
 	}
@@ -381,7 +384,7 @@ void LobeModel::draw(QPainter & painter, QPointF cursor, const QRectF  & viewpor
 
 void LobeModel::initialize(const LobeData * data)
 {
-	lobe_cell_create(&identity, data);
+	lobeConstruct2(&identity, data, name.toStdString().c_str());
 }
 
 void LobeModel::onMousePress(QPointF cursor)
@@ -549,15 +552,15 @@ int LobeModel::getEdge(QPointF cursorPos, QSizeF pixels)
 
 void LobeModel::interpolate_tick()
 {
-	lobe_cell_interpolate_tick(&identity);
+	lobeInterpolateTick(&identity);
 }
 
 void LobeModel::process_tick()
 {
-	predicted = lobe_cell_process_tick(&identity);
+	predicted = lobeProcessTick(&identity);
 }
 
 void LobeModel::advance_time()
 {
-	lobe_cell_advance_time(&identity, 1);
+	lobeAdvanceTime(&identity, 1);
 }

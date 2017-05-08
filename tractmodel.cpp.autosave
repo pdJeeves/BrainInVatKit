@@ -98,12 +98,12 @@ QRect TractModel::box()
 
 bool TractModel::isDataSource(const LobeModel * it) const
 {
-	return strncmp(identity.data.dataSource, it->name.toStdString().c_str(), LOBE_NAME_LENGTH);
+	return 0 == strncmp(identity.data.dataSource, it->name.toStdString().c_str(), LOBE_NAME_LENGTH);
 }
 
 bool TractModel::isOriginLobe(const LobeModel * it) const
 {
-	return strncmp(identity.data.originLobe, it->name.toStdString().c_str(), LOBE_NAME_LENGTH);
+	return 0 == strncmp(identity.data.originLobe, it->name.toStdString().c_str(), LOBE_NAME_LENGTH);
 }
 
 int TractModel::Dendrite::dataSource() const

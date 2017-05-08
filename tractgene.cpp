@@ -20,6 +20,8 @@ ui(new Ui::TractSettings)
 {
 	ui->setupUi(this);
 
+	ui->tract_name->setMaxLength(ORGAN_NAME_LENGTH);
+
 	ownr		= parent;
 	original	= tract;
 	lobe		= _l;
@@ -31,31 +33,31 @@ ui(new Ui::TractSettings)
 
 	ui->tract_name->setText(original->name);
 
-	ui->origin_lobe_first->setValue(original->data().origin_lobe_first);
-	ui->min_origin_lobe->setNum(original->data().origin_lobe_first);
-	ui->origin_lobe_last->setValue(original->data().origin_lobe_last);
-	ui->max_origin_lobe->setNum(original->data().origin_lobe_last);
+	ui->origin_lobe_first->setValue(original->data().originLobeFirst);
+	ui->min_origin_lobe->setNum(original->data().originLobeFirst);
+	ui->origin_lobe_last->setValue(original->data().originLobeLast);
+	ui->max_origin_lobe->setNum(original->data().originLobeLast);
 
-	ui->origin_lobe_max->setValue(original->data().origin_lobe_max_synapses);
-	ui->min_data_source->setNum(original->data().data_source_first);
-	ui->data_source_max->setValue(original->data().data_source_max_synapses);
-	ui->max_data_source->setNum(original->data().data_source_last);
+	ui->origin_lobe_max->setValue(original->data().originLobeMaxSynapses);
+	ui->min_data_source->setNum(original->data().dataSourceFirst);
+	ui->data_source_max->setValue(original->data().dataSourceMaxSynapses);
+	ui->max_data_source->setNum(original->data().dataSourceLast);
 
 	if(origin_lobe)
 	{
-		reset_origin_lobe(original->data().origin_lobe_first, original->data().origin_lobe_last, origin_lobe->length());
+		reset_origin_lobe(original->data().originLobeFirst, original->data().originLobeLast, origin_lobe->length());
 	}
 	if(data_source)
 	{
-		reset_data_source(original->data().data_source_first, original->data().data_source_last, data_source->length());
+		reset_data_source(original->data().dataSourceFirst, original->data().dataSourceLast, data_source->length());
 	}
 
 //ignore standard
-	if(original->data().flags & 0x10)
+	if(original->data().flags & tf_SourcePredictive)
 	{
 		ui->predictivefiring->setChecked(true);
 	}
-	else if(original->data().flags & 0x08)
+	else if(original->data().flags & tf_SourceStandard)
 	{
 		ui->standardfiring->setChecked(true);
 	}
@@ -64,39 +66,39 @@ ui(new Ui::TractSettings)
 		ui->allfiring->setChecked(true);
 	}
 
-	ui->origin_lobe_temporal->setChecked(original->data().flags & 0x02);
-	ui->data_source_temporal->setChecked(original->data().flags & 0x04);
+	ui->origin_lobe_temporal->setChecked(original->data().flags & tf_OriginTemporal);
+	ui->data_source_temporal->setChecked(original->data().flags & tf_SourceTemporal);
 
-	ui->min_add->setValue(original->data().min_add);
-	ui->min_addVal->setNum(original->data().min_add);
-	ui->max_add->setValue(original->data().max_add);
-	ui->max_addVal->setNum(original->data().max_add);
+	ui->min_add->setValue(original->data().minAdd);
+	ui->min_addVal->setNum(original->data().minAdd);
+	ui->max_add->setValue(original->data().maxAdd);
+	ui->max_addVal->setNum(original->data().maxAdd);
 	ui->flat->setChecked(original->data().flags & 0x01? Qt::Checked : Qt::Unchecked);
 
-	FlatChecked(original->data().flags & 0x01);
+	FlatChecked(original->data().flags & tf_Flat);
 
 
-	ui->min_str->setValue(original->data().min_str);
-	ui->min_strVal->setNum(original->data().min_str);
-	ui->max_str->setValue(original->data().max_str);
-	ui->min_strVal->setNum(original->data().max_str);
+	ui->min_str->setValue(original->data().minStr);
+	ui->min_strVal->setNum(original->data().minStr);
+	ui->max_str->setValue(original->data().maxStr);
+	ui->min_strVal->setNum(original->data().maxStr);
 	ui->gain   ->setValue(original->data().gain);
 	ui->gainVal->setNum(original->data().gain);
 	ui->lose   ->setValue(original->data().lose);
 	ui->loseVal->setNum(original->data().lose);
 
-	ui->min_ltw->setValue(original->data().min_ltw);
-	ui->min_ltwVal->setNum(original->data().min_ltw);
-	ui->max_ltw->setValue(original->data().max_ltw);
-	ui->max_ltwVal->setNum(original->data().max_ltw);
+	ui->min_ltw->setValue(original->data().minLtw);
+	ui->min_ltwVal->setNum(original->data().minLtw);
+	ui->max_ltw->setValue(original->data().maxLtw);
+	ui->max_ltwVal->setNum(original->data().maxLtw);
 	ui->threshold->setValue(original->data().threshold);
 	ui->threshVal->setNum(original->data().threshold);
 
-	ui->relax_suscept->setValue(original->data().relax_suscept);
-	ui->relax_state->setValue(original->data().relax_state);
-	ui->relax_stw->setValue(original->data().relax_stw);
-	ui->relax_ltw->setValue(original->data().relax_ltw);
-	ui->relax_str->setValue(original->data().relax_str);
+	ui->relax_suscept->setValue(original->data().relaxSuscept);
+	ui->relax_state->setValue(original->data().relaxState);
+	ui->relax_stw->setValue(original->data().relaxStw);
+	ui->relax_ltw->setValue(original->data().relaxLtw);
+	ui->relax_str->setValue(original->data().relaxStr);
 
 	ui->spread->setValue(original->data().spread);
 	ui->spread_val->setNum(original->data().spread);
@@ -147,8 +149,8 @@ ui(new Ui::TractSettings)
 	QObject::connect(ui->tract_name, SIGNAL(editingFinished()), this, SLOT(onTextEdited()));
 
 	{
-	QString origin_lobe = QString().sprintf("%.16s", original->identity.data.origin_lobe);
-	QString data_source = QString().sprintf("%.16s", original->identity.data.data_source);
+	QString origin_lobe = QString().sprintf("%.*s", LOBE_NAME_LENGTH, original->identity.data.originLobe);
+	QString data_source = QString().sprintf("%.*s", LOBE_NAME_LENGTH, original->identity.data.dataSource);
 
 	QStringList lobe_list;
 
@@ -303,65 +305,74 @@ void TractSettings::onDataSourceSelected(int)
 	ui->closeButton->setEnabled(can_close());
 }
 
+void copyTractString(char * dst, const QString & src, int length)
+{
+	if(src == "<nothing>")
+	{
+		memset(dst, 0, length);
+	}
+	else
+	{
+		strncpy(dst, src.toStdString().c_str(), length);
+	}
+}
+
 TractData TractSettings::getData()
 {
 	TractData gene = original->identity.data;
 
-	const char * temp = ui->origin_lobe->currentText().toStdString().c_str();
-	strncpy(gene.origin_lobe, temp, 16);
-	temp = ui->data_source->currentText().toStdString().c_str();
-	strncpy(gene.data_source, temp, 16);
-	temp = ui->mirror->currentText().toStdString().c_str();
-	strncpy(gene.mirror,	  temp, 16);
+	copyTractString(gene.originLobe, ui->origin_lobe->currentText(), LOBE_NAME_LENGTH);
+	copyTractString(gene.dataSource, ui->data_source->currentText(), LOBE_NAME_LENGTH);
+	copyTractString(gene.mirror    , ui->mirror     ->currentText(), ORGAN_NAME_LENGTH);
 
-	gene.origin_lobe_first = ui->origin_lobe_first->value();
-	gene.origin_lobe_last  = ui->origin_lobe_last->value();
-	gene.data_source_first = ui->data_source_first->value();
-	gene.data_source_last  = ui->data_source_last->value();
+	gene.originLobeFirst = ui->origin_lobe_first->value();
+	gene.originLobeLast  = ui->origin_lobe_last->value();
+	gene.dataSourceFirst = ui->data_source_first->value();
+	gene.dataSourceLast  = ui->data_source_last->value();
 
 	gene.flags		 	= 0;
 
 	if(ui->flat->isChecked())
 	{
-		gene.flags |= 0x01;
+		gene.flags |= tf_Flat;
 	}
 	if(ui->origin_lobe_temporal->isChecked())
 	{
-		gene.flags |= 0x02;
+		gene.flags |= tf_OriginTemporal;
 	}
 	if(ui->data_source_temporal->isChecked())
 	{
-		gene.flags |= 0x04;
+		gene.flags |= tf_SourceTemporal;
 	}
 	if(ui->predictivefiring->isChecked())
 	{
-		gene.flags |= 0x08;
+		gene.flags |= tf_SourcePredictive;
 	}
 	else if(ui->standardfiring->isChecked())
 	{
-		gene.flags |= 0x10;
+		gene.flags |= tf_SourceStandard;
 	}
 
-	gene.origin_lobe_max_synapses= ui->origin_lobe_max->value();
-	gene.data_source_max_synapses= ui->data_source_max->value();
+	gene.originLobeMaxSynapses= ui->origin_lobe_max->value();
+	gene.dataSourceMaxSynapses= ui->data_source_max->value();
 
-	gene.min_add 		= ui->min_add->value();
-	gene.max_add 		= ui->max_add->value();
+	gene.minAdd 		= ui->min_add->value();
+	gene.maxAdd 		= ui->max_add->value();
 
-	gene.min_str 		= ui->min_str->value();
-	gene.max_str 		= ui->max_str->value();
+	gene.minStr 		= ui->min_str->value();
+	gene.maxStr 		= ui->max_str->value();
 	gene.gain			= ui->gain   ->value();
 	gene.lose			= ui->lose   ->value();
 
-	gene.min_ltw 		= ui->min_ltw->value();
-	gene.max_ltw 		= ui->max_ltw->value();
+	gene.minLtw 		= ui->min_ltw->value();
+	gene.maxLtw 		= ui->max_ltw->value();
 	gene.threshold		= ui->threshold->value();
 
-	gene.relax_suscept	= ui->relax_suscept->value();
-	gene.relax_state 	= ui->relax_state->value();
-	gene.relax_stw		= ui->relax_stw->value();
-	gene.relax_ltw		= ui->relax_ltw->value();
-	gene.relax_str      = ui->relax_str->value();
+	gene.relaxSuscept	= ui->relax_suscept->value();
+	gene.relaxState 	= ui->relax_state->value();
+	gene.relaxStw		= ui->relax_stw->value();
+	gene.relaxLtw		= ui->relax_ltw->value();
+	gene.relaxStr      = ui->relax_str->value();
 	gene.spread			= ui->spread->value();
 
 	return gene;

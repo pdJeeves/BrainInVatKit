@@ -1,7 +1,12 @@
 #ifndef TRACTMODEL_H
 #define TRACTMODEL_H
-#include "lobe.h"
-#include "tract.h"
+
+extern "C"
+{
+#include "brain/lobe.h"
+#include "brain/tract.h"
+}
+
 #include "brainmodel.h"
 #include "lobemodel.h"
 #include <QPainter>
@@ -22,7 +27,7 @@ public:
 	explicit TractModel(BrainModel & brain, const QString & name, const TractData & tract);
 	~TractModel()
 	{
-		tract_cell_free(&identity);
+		tractDestruct(&identity);
 	}
 
 private:
@@ -69,7 +74,7 @@ public:
 	bool isOriginLobe(const LobeModel * it) const;
 
 	bool getLobes(LobeModel *& origin_lobe, LobeModel *& data_source, const QString & origin_lobe_name, const QString & data_source_name) const;
-	bool getLobes(LobeModel *& origin_lobe, LobeModel *& data_source, const char origin[16], const char source[16]) const;
+	bool getLobes(LobeModel *& origin_lobe, LobeModel *& data_source, const char *origin, const char *source) const;
 	bool getLobes(LobeModel *& origin_lobe, LobeModel *& data_source) const;
 
 	struct Dendrite
@@ -89,8 +94,8 @@ public:
 			: self(it)
 		{
 			it.getLobes(origin_lobe, data_source);
-			dendrite = cell * self.identity.data.origin_lobe_max_synapses - 1;
-			_dendrite = cell * self.identity.data.data_source_max_synapses - 1;
+			dendrite = cell * self.identity.data.originLobeMaxSynapses - 1;
+			_dendrite = cell * self.identity.data.dataSourceMaxSynapses - 1;
 
 			_mode = mode;
 			if(dendrite < 0)
@@ -122,10 +127,10 @@ public:
 
 			if(!_mode)
 			{
-				return !self.identity.data.data_source_max_synapses || dendrite >= origin_lobe_dens(&self.identity);
+				return !self.identity.data.dataSourceMaxSynapses || dendrite >= tractOriginLobeDens(&self.identity);
 			}
 
-			return !self.identity.data.origin_lobe_max_synapses || _dendrite >= data_source_dens(&self.identity);
+			return !self.identity.data.originLobeMaxSynapses || _dendrite >= tractDataSourceDens(&self.identity);
 		}
 
 		int dataSource() const;
@@ -135,29 +140,29 @@ public:
 		inline
 		double strength() const
 		{
-			if(!exists()) return self.identity.data.min_str;
+			if(!exists()) return self.identity.data.minStr;
 			return self.identity.strength[dendrite] / 255.0;
 		}
 
 		inline
 		double stw() const
 		{
-			if(!exists()) return self.identity.data.min_ltw;
-			return self.identity.stw[dendrite] / 128.0 - 1.0;
+			if(!exists()) return self.identity.data.minLtw;
+			return self.identity.stw[dendrite] / (float) tw_maxWeight - 1.0;
 		}
 
 		inline
 		double ltw() const
 		{
-			if(!exists()) return self.identity.data.max_ltw;
-			return self.identity.ltw[dendrite] / 128.0 - 1.0;
+			if(!exists()) return self.identity.data.maxLtw;
+			return self.identity.ltw[dendrite] / (float) tw_maxWeight - 1.0;
 		}
 
 		inline
 		double suscept() const
 		{
 			if(!exists()) return 0;
-			return self.identity.suscept[dendrite / self.identity.data.origin_lobe_max_synapses] / 255.0;
+			return self.identity.suscept[dendrite / self.identity.data.originLobeMaxSynapses] / 255.0;
 		}
 
 
@@ -165,21 +170,21 @@ public:
 		double excitation() const
 		{
 			if(!exists()) return 0;
-			return self.identity.excitation[dendrite / self.identity.data.origin_lobe_max_synapses] / 255.0;
+			return self.identity.excitation[dendrite / self.identity.data.originLobeMaxSynapses] / 255.0;
 		}
 
 		inline
 		double inhibition() const
 		{
 			if(!exists()) return 0;
-			return self.identity.inhibition[dendrite / self.identity.data.origin_lobe_max_synapses] / 255.0;
+			return self.identity.inhibition[dendrite / self.identity.data.originLobeMaxSynapses] / 255.0;
 		}
 
 		inline
 		double prev() const
 		{
 			if(!exists()) return 0;
-			return self.identity.prev[dendrite / self.identity.data.origin_lobe_max_synapses] / 255.0;
+			return self.identity.prev[dendrite / self.identity.data.originLobeMaxSynapses] / 255.0;
 		}
 
 		void popFront();

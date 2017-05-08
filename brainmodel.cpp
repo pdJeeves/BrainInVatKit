@@ -1,4 +1,5 @@
 #include "brainmodel.h"
+#include "genetics/genome_symbols.h"
 #include <catalogue.h>
 
 template<>
@@ -84,15 +85,15 @@ void BrainModel::newLobe()
 {
 	LobeData data;
 	memset(&data, 0, sizeof(data));
-	data.posx		= last_pos.x();
-	data.posy		= last_pos.y();
-	data.width		= 1;
-	data.height		= 1;
+	data.position.dimensions.x		= last_pos.x();
+	data.position.dimensions.y		= last_pos.y();
+	data.size.dimensions.width		= 1;
+	data.size.dimensions.height		= 1;
 	data.threshold  = 64;
-	data.duty_cycle.period     = 10000;
-	data.relax_state = 128;
-	data.relax_prev  = 255;
-	data.max_boost  = 2;
+	data.period     = 10000;
+	data.relaxState = 128;
+	data.relaxPrev  = 255;
+	data.maxBoost  = 2;
 	auto lobe = new LobeModel(*this, QString(), data);
 	new_gene = lobe;
 	lobe->editGene();
@@ -180,10 +181,12 @@ void BrainModel::add(const GeneHeader * gene)
 {
 	switch(gene->type)
 	{
-	case LobeType:
+	case gt_Lobe:
 		list<LobeModel>().push_back(new LobeModel(*this, QString(gene->organ), *((LobeData *) (gene + 1)) ));
-	case TractType:
+		break;
+	case gt_Tract:
 		list<TractModel>().push_back(new TractModel(*this, QString(gene->organ), *((TractData *) (gene + 1)) ));
+		break;
 	default:
 		return;
 	}
@@ -277,17 +280,13 @@ bool BrainModel::save(QString filename)
 		return false;
 	}
 
-	fprintf(file, "<%s>\n",
-		catalogue_get_string("genome symbols", GENOME));
-
 	ExportMoniker(file, "brain",
 		"0000" "0000" "0000" "CAIN",
 		"0000" "0000" "0000" "ADAM",
 		"0000" "0000" "0000" "0EVE");
 
-	fprintf(file, "\t<%s %s='a'>\n",
-		catalogue_get_string("genome symbols", CHROMOSOME),
-		catalogue_get_string("genome symbols", ID));
+	fprintf(file, "\n%s : 'a' {\n",
+		catalogue_get_string("genome symbols", gt_CHROMOSOME));
 
 	for(auto i = list<LobeModel>().begin(); i != list<LobeModel>().end(); ++i)
 	{
@@ -299,11 +298,7 @@ bool BrainModel::save(QString filename)
 		(*i)->save(file);
 	}
 
-	fprintf(file, "\t</%s>\n",
-		catalogue_get_string("genome symbols", CHROMOSOME));
-
-	fprintf(file, "</%s>\n",
-		catalogue_get_string("genome symbols", GENOME));
+	fprintf(file, "}\n");
 
 	fclose(file);
 
