@@ -222,11 +222,13 @@ void TractModel::commit()
 	{
 		return;
 	}
+
+
 /*
 	mirror->remove_mirror(this);
 
 	QString label;
-	label.sprintf("%.16s", identity.data.mirror);
+	label.sprintf("%.*s", ORGAN_NAME_LENGTH, identity.data.mirror);
 
 	if(!label.isEmpty())
 	{

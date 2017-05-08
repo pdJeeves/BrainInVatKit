@@ -5,29 +5,20 @@
 #-------------------------------------------------
 
 QT       += core gui opengl
-INCLUDEPATH += \
-	/home/anyuser/Developer/Kreatures/libFreetures/include/ \
-	/home/anyuser/Developer/Kreatures/libFreetures/src/
+
 CONFIG += c++11
-QMAKESPEC=linux-g++-64
-LIBS=-pthread -lm -lpcre16 -L/usr/lib/x86_64-linux-gnu/ -lxml2 -ldrm
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+INCLUDEPATH += src \
+	/home/anyuser/Developer/Kreatures/libFreetures/include/ \
+	/home/anyuser/Developer/Kreatures/libFreetures/src/
+
+LIBS=-pthread -lm -lpcre16 -L/usr/lib/x86_64-linux-gnu/ -ldrm
 TARGET = BrainInVatKit
 TEMPLATE = app
 
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    lobemodel.cpp \
-    modelcommand.cpp \
-    tractmodel.cpp \
-    brainview.cpp \
-    brainmodel.cpp \
-    instinctmodel.cpp \
-    lobegene.cpp \
-    tractgene.cpp \
-    colorwidget.cpp \
+SOURCES += main.cpp \
     ../../../Developer/Kreatures/libFreetures/src/body/pose_string_table.cpp \
     ../../../Developer/Kreatures/libFreetures/src/catalogue/catalogue_hash.cpp \
     ../../../Developer/Kreatures/libFreetures/src/biochemistry/emitter.c \
@@ -70,18 +61,20 @@ SOURCES += main.cpp\
     ../../../Developer/Kreatures/libFreetures/src/parser/grammar.c \
     ../../../Developer/Kreatures/libFreetures/src/parser/lexical.c \
     ../../../Developer/Kreatures/libFreetures/src/parser/strdup.c \
-    ../../../Developer/Kreatures/libFreetures/src/ranges/directory_range.c
+    ../../../Developer/Kreatures/libFreetures/src/ranges/directory_range.c \
+    src/brainmodel.cpp \
+    src/brainview.cpp \
+    src/colorview.cpp \
+    src/colorwidget.cpp \
+    src/instinctmodel.cpp \
+    src/lobegene.cpp \
+    src/lobemodel.cpp \
+    src/mainwindow.cpp \
+    src/modelcommand.cpp \
+    src/tractgene.cpp \
+    src/tractmodel.cpp
 
-HEADERS  += mainwindow.h \
-    lobemodel.h \
-    modelcommand.h \
-    tractmodel.h \
-    brainview.h \
-    brainmodel.h \
-    instinctmodel.h \
-    lobegene.h \
-    tractgene.h \
-    colorwidget.h \
+HEADERS  += \
     ../../../Developer/Kreatures/libFreetures/include/brain.h \
     ../../../Developer/Kreatures/libFreetures/include/catalogue.h \
     ../../../Developer/Kreatures/libFreetures/include/creature.h \
@@ -137,8 +130,23 @@ HEADERS  += mainwindow.h \
     ../../../Developer/Kreatures/libFreetures/src/neurochemistry/neurochemistry.h \
     ../../../Developer/Kreatures/libFreetures/src/parser/lexer.h \
     ../../../Developer/Kreatures/libFreetures/src/parser/strdup.h \
-    ../../../Developer/Kreatures/libFreetures/src/ranges/directory_range.h
+    ../../../Developer/Kreatures/libFreetures/src/ranges/directory_range.h \
+    src/brainmodel.h \
+    src/brainview.h \
+    src/colorview.h \
+    src/colorwidget.h \
+    src/instinctmodel.h \
+    src/lobegene.h \
+    src/lobemodel.h \
+    src/mainwindow.h \
+    src/modelcommand.h \
+    src/tractgene.h \
+    src/tractmodel.h \
+    src/ui_lobegene.h \
+    src/ui_mainwindow.h \
+    src/ui_tractgene.h
 
-FORMS    += mainwindow.ui \
+FORMS    += \
     lobegene.ui \
+    mainwindow.ui \
     tractgene.ui
