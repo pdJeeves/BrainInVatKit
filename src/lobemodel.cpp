@@ -11,7 +11,7 @@
 #include <algorithm>
 
 static inline
-QPoint __attribute((always_inline)) to_point(const QPointF & x)
+QPoint attr_ALWAYS_INLINE to_point(const QPointF & x)
 {
 	return QPoint((int) x.x(), (int) x.y());
 }
@@ -507,7 +507,7 @@ void LobeModel::propagateHighlightBackward(std::vector<uint16_t> & light)
 
 
 static inline
-int __attribute((always_inline)) __attribute((const)) getEdge(int size, float position, float pixels)
+int attr_ALWAYS_INLINE attr_CONST getEdge(int size, float position, float pixels)
 {
 	int flags = 0;
 
