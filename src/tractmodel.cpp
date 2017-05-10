@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <catalogue.h>
 #include <cstdio>
+#include <iostream>
 
 QPointF operator*(const QPointF & a, const QSizeF & b)
 {
@@ -111,9 +112,11 @@ int TractModel::Dendrite::dataSource() const
 {
 	if(!_mode)
 	{
-		return tractDataSourceCellFromOriginLobeSynapse(
+		int ds = tractDataSourceCellFromOriginLobeSynapse(
 			&self.identity, dendrite / self.identity.data.originLobeMaxSynapses,
-			synapse()) + self.identity.data.dataSourceFirst;
+			synapse());
+
+		return ds == -1? -1 : ds + self.identity.data.dataSourceFirst;
 	}
 
 	return _dendrite / self.identity.data.dataSourceMaxSynapses + self.identity.data.dataSourceFirst;
@@ -126,9 +129,11 @@ int TractModel::Dendrite::originCell() const
 		return dendrite / self.identity.data.originLobeMaxSynapses + self.identity.data.originLobeFirst;
 	}
 
-	return tractOriginLobeCellFromDataSourceSynapse(
+	int ds = tractOriginLobeCellFromDataSourceSynapse(
 		&self.identity, _dendrite / self.identity.data.dataSourceMaxSynapses,
-		synapse()) + self.identity.data.originLobeFirst;
+		synapse());
+
+	return ds == -1? -1 : ds + self.identity.data.originLobeFirst;
 }
 
 

@@ -40,24 +40,6 @@ ui(new Ui::TractSettings)
 	QObject::connect(it, &QSlider::valueChanged, this, [this](int) { label->setNum(get_cycles_for_rate(it->value())); });\
 	label->setNum(get_cycles_for_rate(it->value()));
 
-	configureMinMaxRange(ui->origin_lobe_first, ui->origin_lobe_last, ui->origin_lobe_max);
-	configureMinMaxRange(ui->data_source_first, ui->data_source_last, ui->data_source_max);
-
-	configureMinMaxRange(ui->min_add, ui->max_add, ui->spread);
-	configureMinMaxRange(ui->min_str, ui->max_str, ui->spread);
-	configureMinMaxRange(ui->min_ltw, ui->max_ltw, ui->spread);
-
-	configureMinMaxRange(ui->relax_ltw, ui->relax_stw, ui->relax_str);
-	configureRelaxRate(ui->relax_ltw, ui->rate_ltw);
-	configureRelaxRate(ui->relax_stw, ui->rate_stw);
-
-	configureRelaxRate(ui->relax_state, ui->rate_state);
-	configureRelaxRate(ui->relax_suscept, ui->rate_suscept);
-	configureRelaxRate(ui->relax_str, ui->rate_str);
-
-#undef configureMinMaxRange
-#undef configureRelaxRate
-
 	QObject::connect(ui->tabs, &QTabWidget::currentChanged, this, &TractSettings::updateSliders);
 
 	LobeModel * origin_lobe;
@@ -182,6 +164,20 @@ ui(new Ui::TractSettings)
 	QObject::connect(ui->origin_lobe, SIGNAL(currentIndexChanged(int)), this, SLOT(onOriginLobeSelected(int)));
 	QObject::connect(ui->data_source, SIGNAL(currentIndexChanged(int)), this, SLOT(onDataSourceSelected(int)));
 
+	configureMinMaxRange(ui->origin_lobe_first, ui->origin_lobe_last, ui->origin_lobe_max);
+	configureMinMaxRange(ui->data_source_first, ui->data_source_last, ui->data_source_max);
+
+	configureMinMaxRange(ui->min_add, ui->max_add, ui->spread);
+	configureMinMaxRange(ui->min_str, ui->max_str, ui->spread);
+	configureMinMaxRange(ui->min_ltw, ui->max_ltw, ui->spread);
+
+	configureMinMaxRange(ui->relax_ltw, ui->relax_stw, ui->relax_str);
+	configureRelaxRate(ui->relax_ltw, ui->rate_ltw);
+	configureRelaxRate(ui->relax_stw, ui->rate_stw);
+
+	configureRelaxRate(ui->relax_state, ui->rate_state);
+	configureRelaxRate(ui->relax_suscept, ui->rate_suscept);
+	configureRelaxRate(ui->relax_str, ui->rate_str);
 
 	tract_list_updated();
 }
@@ -358,7 +354,7 @@ TractData TractSettings::getData()
 
 	if(ui->allfiring->isChecked())
 	{
-		gene.flags |= tf_SourcePredictive | tf_SourceStandard;
+		gene.flags |= tf_SourceFiring;
 	}
 	else if(ui->predictivefiring->isChecked())
 	{

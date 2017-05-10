@@ -159,6 +159,7 @@ void MainWindow::keyPressEvent		(QKeyEvent *e)
 	if(e->key() == Qt::Key_R)
 	{
 		reverse_tracts = !reverse_tracts;
+		ui->brainView->repaint();
 	}
 
 }
