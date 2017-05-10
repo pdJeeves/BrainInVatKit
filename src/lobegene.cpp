@@ -1,5 +1,4 @@
 #include <QColorDialog>
-#include "brain/lobe.h"
 #include "lobegene.h"
 #include "ui_lobegene.h"
 #include <QDesktopWidget>

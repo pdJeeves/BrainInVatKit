@@ -1,47 +1,74 @@
 #include "tractgene.h"
-#include "ui_tractgene.h"
+#include "ui_tractsettings.h"
 #include <QDesktopWidget>
+#include <iostream>
 
 int get_cycles_for_rate(int x)
 {
-	double rate = (double) x / (x + 1);
-
-	int cycles = 0;
-	uint8_t max = 255;
-
-	while(max *= rate) { ++cycles; }
-
-	return cycles;
+	return std::log(1/256.0) / std::log(x / (x + 1.0));
 }
 
-TractSettings::TractSettings(MainWindow * parent, TractModel * tract, LobeModel * _l) :
+void TractSettings::rangeChanged(QSlider * a, QSlider * b, int width)
+{
+	float avg = (a->value() + b->value())/2.0;
+	a->setFixedWidth(avg * width / b->maximum());
+	a->setMaximum(avg + (a->value()+1 == b->value()));
+	b->setMinimum(avg);
+}
+
+
+
+TractSettings::TractSettings(MainWindow * parent, TractModel * original, LobeModel * lobe) :
 QMainWindow(parent),
+lobe(lobe),
+ownr(parent),
+original(original),
 ui(new Ui::TractSettings)
 {
 	ui->setupUi(this);
 
+	setLabelWidths();
+
+
 	ui->tract_name->setMaxLength(ORGAN_NAME_LENGTH);
 
-	ownr		= parent;
-	original	= tract;
-	lobe		= _l;
+#define configureMinMaxRange(min, max, sizer) \
+	QObject::connect(min, &QSlider::valueChanged, this, [this](int) { rangeChanged(min, max, sizer->width()); });\
+	QObject::connect(max, &QSlider::valueChanged, this, [this](int) { rangeChanged(min, max, sizer->width()); });
+
+#define configureRelaxRate(it, label)\
+	QObject::connect(it, &QSlider::valueChanged, this, [this](int) { label->setNum(get_cycles_for_rate(it->value())); });\
+	label->setNum(get_cycles_for_rate(it->value()));
+
+	configureMinMaxRange(ui->origin_lobe_first, ui->origin_lobe_last, ui->origin_lobe_max);
+	configureMinMaxRange(ui->data_source_first, ui->data_source_last, ui->data_source_max);
+
+	configureMinMaxRange(ui->min_add, ui->max_add, ui->spread);
+	configureMinMaxRange(ui->min_str, ui->max_str, ui->spread);
+	configureMinMaxRange(ui->min_ltw, ui->max_ltw, ui->spread);
+
+	configureMinMaxRange(ui->relax_ltw, ui->relax_stw, ui->relax_str);
+	configureRelaxRate(ui->relax_ltw, ui->rate_ltw);
+	configureRelaxRate(ui->relax_stw, ui->rate_stw);
+
+	configureRelaxRate(ui->relax_state, ui->rate_state);
+	configureRelaxRate(ui->relax_suscept, ui->rate_suscept);
+	configureRelaxRate(ui->relax_str, ui->rate_str);
+
+#undef configureMinMaxRange
+#undef configureRelaxRate
+
+	QObject::connect(ui->tabs, &QTabWidget::currentChanged, this, &TractSettings::updateSliders);
 
 	LobeModel * origin_lobe;
 	LobeModel * data_source;
 
-	tract->getLobes(origin_lobe, data_source);
+	original->getLobes(origin_lobe, data_source);
 
 	ui->tract_name->setText(original->name);
 
-	ui->origin_lobe_first->setValue(original->data().originLobeFirst);
-	ui->min_origin_lobe->setNum(original->data().originLobeFirst);
-	ui->origin_lobe_last->setValue(original->data().originLobeLast);
-	ui->max_origin_lobe->setNum(original->data().originLobeLast);
-
 	ui->origin_lobe_max->setValue(original->data().originLobeMaxSynapses);
-	ui->min_data_source->setNum(original->data().dataSourceFirst);
 	ui->data_source_max->setValue(original->data().dataSourceMaxSynapses);
-	ui->max_data_source->setNum(original->data().dataSourceLast);
 
 	if(origin_lobe)
 	{
@@ -70,29 +97,20 @@ ui(new Ui::TractSettings)
 	ui->data_source_temporal->setChecked(original->data().flags & tf_SourceTemporal);
 
 	ui->min_add->setValue(original->data().minAdd);
-	ui->min_addVal->setNum(original->data().minAdd);
 	ui->max_add->setValue(original->data().maxAdd);
-	ui->max_addVal->setNum(original->data().maxAdd);
 	ui->flat->setChecked(original->data().flags & 0x01? Qt::Checked : Qt::Unchecked);
 
 	FlatChecked(original->data().flags & tf_Flat);
 
 
 	ui->min_str->setValue(original->data().minStr);
-	ui->min_strVal->setNum(original->data().minStr);
 	ui->max_str->setValue(original->data().maxStr);
-	ui->min_strVal->setNum(original->data().maxStr);
 	ui->gain   ->setValue(original->data().gain);
-	ui->gainVal->setNum(original->data().gain);
 	ui->lose   ->setValue(original->data().lose);
-	ui->loseVal->setNum(original->data().lose);
 
 	ui->min_ltw->setValue(original->data().minLtw);
-	ui->min_ltwVal->setNum(original->data().minLtw);
 	ui->max_ltw->setValue(original->data().maxLtw);
-	ui->max_ltwVal->setNum(original->data().maxLtw);
 	ui->threshold->setValue(original->data().threshold);
-	ui->threshVal->setNum(original->data().threshold);
 
 	ui->relax_suscept->setValue(original->data().relaxSuscept);
 	ui->relax_state->setValue(original->data().relaxState);
@@ -101,52 +119,11 @@ ui(new Ui::TractSettings)
 	ui->relax_str->setValue(original->data().relaxStr);
 
 	ui->spread->setValue(original->data().spread);
-	ui->spread_val->setNum(original->data().spread);
 
-	QObject::connect(ui->origin_lobe_max, SIGNAL(sliderMoved(int)), this, SLOT(SynapsesChanged(int)));
-	QObject::connect(ui->data_source_max, SIGNAL(sliderMoved(int)), this, SLOT(SynapsesChanged(int)));
+	QObject::connect(ui->flat, &QRadioButton::toggled, this, &TractSettings::FlatChecked);
 
-	QObject::connect(ui->min_add, SIGNAL(sliderMoved(int)), this, SLOT(MinAddChanged(int)));
-	QObject::connect(ui->max_add, SIGNAL(sliderMoved(int)), this, SLOT(MaxAddChanged(int)));
-	MinAddChanged(0);
-	MaxAddChanged(0);
-
-	QObject::connect(ui->min_str, SIGNAL(sliderMoved(int)), this, SLOT(MinStrChanged(int)));
-	QObject::connect(ui->max_str, SIGNAL(sliderMoved(int)), this, SLOT(MaxStrChanged(int)));
-	MinStrChanged(0);
-	MaxStrChanged(0);
-
-	QObject::connect(ui->min_add, SIGNAL(sliderMoved(int)), this, SLOT(MinAddChanged(int)));
-	QObject::connect(ui->max_add, SIGNAL(sliderMoved(int)), this, SLOT(MaxAddChanged(int)));
-	MinAddChanged(0);
-	MaxAddChanged(0);
-
-	QObject::connect(ui->min_ltw, SIGNAL(sliderMoved(int)), this, SLOT(MinLtwChanged(int)));
-	QObject::connect(ui->max_ltw, SIGNAL(sliderMoved(int)), this, SLOT(MaxLtwChanged(int)));
-	MinLtwChanged(0);
-	MaxLtwChanged(0);
-
-	QObject::connect(ui->relax_ltw, SIGNAL(sliderMoved(int)), this, SLOT(RelaxLtwChanged(int)));
-	QObject::connect(ui->relax_stw, SIGNAL(sliderMoved(int)), this, SLOT(RelaxStwChanged(int)));
-	RelaxLtwChanged(0);
-	RelaxStwChanged(0);
-
-	QObject::connect(ui->relax_state, SIGNAL(sliderMoved(int)), this, SLOT(RelaxStateChanged(int)));
-	QObject::connect(ui->relax_suscept, SIGNAL(sliderMoved(int)), this, SLOT(RelaxSusceptChanged(int)));
-	QObject::connect(ui->relax_str, SIGNAL(sliderMoved(int)), this, SLOT(RelaxStrChanged(int)));
-	RelaxStateChanged(0);
-	RelaxSusceptChanged(0);
-	RelaxStrChanged(0);
-
-	QObject::connect(ui->origin_lobe_first, SIGNAL(sliderMoved(int)), this, SLOT(FirstSourceChanged(int)));
-	QObject::connect(ui->origin_lobe_last , SIGNAL(sliderMoved(int)), this, SLOT( LastSourceChanged(int)));
-	QObject::connect(ui->data_source_first, SIGNAL(sliderMoved(int)), this, SLOT(FirstDestChanged(int)));
-	QObject::connect(ui->data_source_last , SIGNAL(sliderMoved(int)), this, SLOT (LastDestChanged(int)));
-
-	QObject::connect(ui->flat, SIGNAL(toggled(bool)), this, SLOT(FlatChecked(bool)));
-
-	QObject::connect(ui->closeButton, SIGNAL(clicked()), this, SLOT(onClosePushed()));
-	QObject::connect(ui->tract_name, SIGNAL(editingFinished()), this, SLOT(onTextEdited()));
+	QObject::connect(ui->closeButton, &QPushButton::clicked, this, &TractSettings::onClosePushed);
+	QObject::connect(ui->tract_name, &QLineEdit::editingFinished, this, &TractSettings::onTextEdited);
 
 	{
 	QString origin_lobe = QString().sprintf("%.*s", LOBE_NAME_LENGTH, original->identity.data.originLobe);
@@ -205,6 +182,7 @@ ui(new Ui::TractSettings)
 	QObject::connect(ui->origin_lobe, SIGNAL(currentIndexChanged(int)), this, SLOT(onOriginLobeSelected(int)));
 	QObject::connect(ui->data_source, SIGNAL(currentIndexChanged(int)), this, SLOT(onDataSourceSelected(int)));
 
+
 	tract_list_updated();
 }
 
@@ -213,19 +191,53 @@ TractSettings::~TractSettings()
 	delete ui;
 }
 
+void TractSettings::updateSliders(int i)
+{
+	switch(i)
+	{
+	case 0:
+		rangeChanged(ui->origin_lobe_first, ui->origin_lobe_last, ui->origin_lobe_max->width());
+		rangeChanged(ui->data_source_first, ui->data_source_last, ui->data_source_max->width());
+		break;
+	case 1:
+		rangeChanged(ui->min_add, ui->max_add, ui->spread->width());
+		rangeChanged(ui->min_str, ui->max_str, ui->spread->width());
+		rangeChanged(ui->min_ltw, ui->max_ltw, ui->spread->width());
+		break;
+	case 2:
+		rangeChanged(ui->relax_ltw, ui->relax_stw, ui->rate_state->width());
+		break;
+	}
+}
+
+void TractSettings::setLabelWidths()
+{
+	QFont font;
+	QFontMetrics fm(font);
+	int width = fm.width("000");
+
+	ui->min_addVal->setFixedWidth(width);
+	ui->max_addVal->setFixedWidth(width);
+	ui->threshVal->setFixedWidth(width);
+
+	width = fm.width("0000");
+
+	ui->rate_stw->setFixedWidth(width);
+	ui->rate_ltw->setFixedWidth(width);
+}
+
 void reset_lobe(QSlider * a, QSlider * b, int min, int max, int length)
 {
 	a->setMinimum(0);
-
-	a->setMaximum(max - 1);
+	a->setMaximum(length-1);
+	b->setMinimum(0);
+	b->setMaximum(length-1);
 
 	a->setValue(min);
+	b->setValue(max-1);
 
-	b->setMinimum(min + 1);
-
-	b->setMaximum(length);
-
-	b->setValue(max);
+	a->setEnabled(length > 1);
+	b->setEnabled(length > 1);
 }
 
 void TractSettings::reset_origin_lobe(int min, int max, int length)
@@ -269,11 +281,10 @@ void TractSettings::setFiring(LobeModel * it)
 
 	if(!enable)
 	{
-		ui->data_source_standard->setChecked(true);
+		ui->data_source_temporal->setChecked(false);
 		ui->standardfiring->setChecked(true);
 	}
 
-	ui->data_source_standard->setEnabled(enable);
 	ui->data_source_temporal->setEnabled(enable);
 	ui->predictivefiring->setEnabled(enable);
 	ui->standardfiring->setEnabled(enable);
@@ -326,9 +337,9 @@ TractData TractSettings::getData()
 	copyTractString(gene.mirror    , ui->mirror     ->currentText(), ORGAN_NAME_LENGTH);
 
 	gene.originLobeFirst = ui->origin_lobe_first->value();
-	gene.originLobeLast  = ui->origin_lobe_last->value();
+	gene.originLobeLast  = ui->origin_lobe_last->value()+1;
 	gene.dataSourceFirst = ui->data_source_first->value();
-	gene.dataSourceLast  = ui->data_source_last->value();
+	gene.dataSourceLast  = ui->data_source_last->value()+1;
 
 	gene.flags		 	= 0;
 
@@ -344,7 +355,12 @@ TractData TractSettings::getData()
 	{
 		gene.flags |= tf_SourceTemporal;
 	}
-	if(ui->predictivefiring->isChecked())
+
+	if(ui->allfiring->isChecked())
+	{
+		gene.flags |= tf_SourcePredictive | tf_SourceStandard;
+	}
+	else if(ui->predictivefiring->isChecked())
 	{
 		gene.flags |= tf_SourcePredictive;
 	}
@@ -419,38 +435,6 @@ void TractSettings::onTextEdited()
 }
 
 
-static inline
-void min_changed(const QSlider * a, QSlider * b)
-{
-	int min = a->value();
-	int max = b->value();
-	int value = max;
-
-	if(min > max)
-	{
-		value = min + 1;
-	}
-	
-	b->setMinimum(min+1);
-	b->setValue(value);
-}
-
-static inline
-void max_changed(QSlider * a, const QSlider * b)
-{
-	int min = a->value();
-	int max = b->value();
-	int value = min;
-
-	if(min > max)
-	{
-		value = max - 1;
-	}
-	
-	a->setMaximum(max - 1);
-	a->setValue(value);
-}
-
 void TractSettings::FlatChecked(bool enabled)
 {
 	enabled = !enabled;
@@ -496,22 +480,12 @@ void TractSettings::lobe_list_updated()
 
 	if(origin_lobe)
 	{
-		if(ui->origin_lobe_last->value() > origin_lobe->length())
-		{
-			ui->origin_lobe_last->setValue(origin_lobe->length() - 1);
-		}
-
 		ui->origin_lobe_last->setMaximum(origin_lobe->length() - 1);
 	}
 
 	if(data_source)
 	{
-		if(ui->data_source_last->value() > data_source->length())
-		{
-			ui->data_source_last->setValue(data_source->length());
-		}
-
-		ui->data_source_last->setMaximum(data_source->length());
+		ui->data_source_last->setMaximum(data_source->length()-1);
 	}
 
 	QStringList lobe_list;
@@ -553,102 +527,3 @@ void TractSettings::lobe_list_updated()
 	ui->data_source->addItems(lobe_list);
 	ui->data_source->setCurrentIndex(dest_index);
 }
-
-void TractSettings::MinAddChanged(int)
-{
-	min_changed(ui->min_add, ui->max_add);
-}
-
-void TractSettings::MaxAddChanged(int)
-{
-	max_changed(ui->min_add, ui->max_add);
-}
-
-void TractSettings::MinStrChanged(int)
-{
-	min_changed(ui->min_str, ui->max_str); 
-}
-
-void TractSettings::MaxStrChanged(int)
-{
-	max_changed(ui->min_str, ui->max_str);
-}
-
-void TractSettings::MinLtwChanged(int)
-{
-	min_changed(ui->min_ltw, ui->max_ltw);
-}
-
-void TractSettings::MaxLtwChanged(int)
-{
-	max_changed(ui->min_ltw, ui->max_ltw);
-}
-
-void TractSettings::RelaxLtwChanged(int)
-{
-	max_changed(ui->relax_stw, ui->relax_ltw);
-	ui->rate_ltw->setNum(get_cycles_for_rate(ui->relax_ltw->value()));
-}
-
-void TractSettings::RelaxStwChanged(int)
-{
-	min_changed(ui->relax_stw, ui->relax_ltw);
-	ui->rate_stw->setNum(get_cycles_for_rate(ui->relax_stw->value()));
-}
-
-void TractSettings::RelaxStateChanged(int)
-{
-	ui->rate_state->setNum(get_cycles_for_rate(ui->relax_state->value()));
-}
-
-void TractSettings::RelaxSusceptChanged(int)
-{
-	ui->rate_suscept->setNum(get_cycles_for_rate(ui->relax_suscept->value()));
-}
-
-void TractSettings::RelaxStrChanged(int)
-{
-	ui->rate_str->setNum(get_cycles_for_rate(ui->relax_str->value()));
-}
-
-void TractSettings::FirstSourceChanged(int)
-{
-	min_changed(ui->origin_lobe_first, ui->origin_lobe_last);
-#ifdef _tract_list_
-	tract_list_updated();
-#endif
-}
-
-void TractSettings::LastSourceChanged(int)
-{
-	max_changed(ui->origin_lobe_first, ui->origin_lobe_last);
-#ifdef _tract_list_
-	tract_list_updated();
-#endif
-}
-
-void TractSettings::FirstDestChanged(int)
-{
-	min_changed(ui->data_source_first, ui->data_source_last);
-#ifdef _tract_list_
-	tract_list_updated();
-#endif
-}
-
-void TractSettings::LastDestChanged(int)
-{
-	max_changed(ui->data_source_first, ui->data_source_last);
-#ifdef _tract_list_
-	tract_list_updated();
-#endif
-}
-
-void TractSettings::SynapsesChanged(int)
-{
-#ifdef _tract_list_
-	tract_list_updated();
-#endif
-}
-
-
-

@@ -43,10 +43,11 @@ QPointF TractModel::Dendrite::cellPos(int cell, const LobeModel * lobe) const
 
 TractModel::TractModel(BrainModel & brain, const QString & name, const TractData & tract)
 	: brain(brain),
-	  original(tract),
 	  prev_name(name),
       name(name)
 {
+	memset(&original, 0, sizeof(original));
+
 	initialize(&tract);
 	flags = (tractFlags) 0L;
 	gene = 0L;
@@ -161,10 +162,17 @@ void TractModel::Dendrite::popFront()
 
 	dendrite = -1;
 
-	do{
+	while(dendrite == -1)
+	{
 		++_dendrite;
+
+		if(empty())
+		{
+			return;
+		}
+
 		dendrite = tractGetSynapseFromDataSource(&self.identity, _dendrite);
-	} while(!empty() && dendrite == -1);
+	}
 }
 
 bool TractModel::hasChanged() const
@@ -181,14 +189,14 @@ void TractModel::edit_gene(LobeModel * it)
 {
 	gene = new TractSettings(&brain.window, this, it);
 	gene->show();
+	gene->updateSliders(0);
 }
 
 void TractModel::editGene()
 {
 	if(!gene)
 	{
-		gene = new TractSettings(&brain.window, this);
-		gene->show();
+		edit_gene(0L);
 	}
 }
 
@@ -262,8 +270,8 @@ void TractModel::save(FILE * file)
 	memcpy(&original, &identity.data, sizeof(original));
 	GeneHeader header;
 	memcpy(header.GENE, "GENE", 4);
-	const char * _name = name.toStdString().c_str();
-	memcpy(header.organ, _name, sizeof(header.organ));
+
+	memcpy(header.organ, name.toStdString().c_str(), ORGAN_NAME_LENGTH);
 	header.bytes = sizeof(original);
 	header.type  = gt_Tract;
 	header.switchOnStage = 0;
@@ -287,7 +295,7 @@ void TractModel::addSubmenu(QMenu * contextMenu)
 {
 	if(!gene)
 	{
-		QAction * EditAction = contextMenu->addAction("Edit Gene");
+		QAction * EditAction = contextMenu->addAction("Edit Tract");
 		connect(EditAction, SIGNAL(triggered()), this, SLOT(editGene()));
 	}
 

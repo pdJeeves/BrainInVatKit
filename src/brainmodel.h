@@ -1,7 +1,10 @@
 #ifndef BRAINMODEL_H
 #define BRAINMODEL_H
+extern "C"
+{
 #include "brain/lobe.h"
 #include "brain/tract.h"
+}
 #include "instinctmodel.h"
 #include "modelcommand.h"
 #include "mainwindow.h"

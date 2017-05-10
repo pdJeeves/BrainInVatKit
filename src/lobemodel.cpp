@@ -19,11 +19,11 @@ QPoint __attribute((always_inline)) to_point(const QPointF & x)
 
 LobeModel::LobeModel(BrainModel & brain, const QString & name, const LobeData & data)
 	:	brain(brain),
-		original(data),
 		_box(data.position.dimensions.x, data.position.dimensions.y, data.size.dimensions.width, data.size.dimensions.height),
 		prev_name(name),
 		name(name)
 {
+	memset(&original, 0, sizeof(original));
 	memset(&identity, 0, sizeof(identity));
 	lobeConstruct2(&identity, &data, name.toStdString().c_str());
 	gene = 0L;
@@ -64,8 +64,7 @@ void LobeModel::save(FILE * file)
 	memcpy(&original, &identity.data, sizeof(original));
 	GeneHeader header;
 	memcpy(header.GENE, "GENE", 4);
-	const char * _name = name.toStdString().c_str();
-	memcpy(header.organ, _name, sizeof(header.organ));
+	memcpy(header.organ, name.toStdString().c_str(), ORGAN_NAME_LENGTH);
 	header.bytes = sizeof(original);
 	header.type  = gt_Lobe;
 	header.switchOnStage = 0;
@@ -100,7 +99,7 @@ void LobeModel::addTract()
 		TractData	 data;
 		memset(&data	, 0, sizeof(data)	);
 
-		strncpy(data.originLobe, name.toStdString().c_str(), 16);
+		strncpy(data.originLobe, name.toStdString().c_str(), LOBE_NAME_LENGTH);
 		data.originLobeLast = length();
 		data.minLtw = tw_minWeight + 32;
 		data.maxLtw = tw_minWeight;

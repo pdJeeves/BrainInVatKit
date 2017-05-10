@@ -124,6 +124,7 @@ void MainWindow::stepEvent()
 {
 	if(!brain) return;
 	brain->stepEvent();
+	ui->brainView->repaint();
 }
 
 void MainWindow::selectKeyEvent()
@@ -313,6 +314,7 @@ void MainWindow::DocumentNew()
 	if(document_close())
 	{
 		brain = new BrainModel(*this);
+		Filename.clear();
 	}
 }
 
@@ -324,13 +326,13 @@ void MainWindow::DocumentOpen()
 		return;
 	}
 
-	brain = new BrainModel(*this);
-	QString file = QFileDialog::getOpenFileName(this, tr("Open Genome File..."), "", tr("Genetics Files (*.gno)"));
+	QString file = QFileDialog::getOpenFileName(this, tr("Open Genome File..."), "", tr("Genetics Files (*.egg)"));
 	if(file.isEmpty())
 	{
 		return;
 	}
 
+	brain = new BrainModel(*this);
 	Filename = file;
 
 	GeneticHandle * handle = geneticHandleCreate(file.toStdString().c_str());

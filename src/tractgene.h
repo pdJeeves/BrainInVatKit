@@ -7,6 +7,9 @@ namespace Ui {
 class TractSettings;
 }
 
+class QSlider;
+class QLabel;
+
 class TractSettings : public QMainWindow
 {
 typedef QMainWindow super;
@@ -15,6 +18,8 @@ private:
 	LobeModel  * lobe;
 	MainWindow * ownr;
 	TractModel * original;
+
+	static void rangeChanged(QSlider * a, QSlider * b, int width);
 
 	TractData getData();
 
@@ -25,30 +30,16 @@ public:
 	void lobe_list_updated();
 	void tract_list_updated();
 
+	void updateSliders(int i);
+	void setLabelWidths();
+
 public slots:
 	void onOriginLobeSelected(int i);
 	void onDataSourceSelected(int i);
+	void FlatChecked(bool enabled);
 	void closeEvent(QCloseEvent * event);
 	void onClosePushed();
 	void onTextEdited();
-
-	void MinAddChanged(int);
-	void MaxAddChanged(int);
-	void MinStrChanged(int);
-	void MaxStrChanged(int);
-	void MinLtwChanged(int);
-	void MaxLtwChanged(int);
-	void RelaxLtwChanged(int);
-	void RelaxStwChanged(int);
-	void FirstSourceChanged(int);
-	void LastSourceChanged(int);
-	void FirstDestChanged(int);
-	void LastDestChanged(int);
-	void FlatChecked(bool enabled);
-	void RelaxStateChanged(int);
-	void RelaxSusceptChanged(int);
-	void RelaxStrChanged(int);
-	void SynapsesChanged(int);
 
 private:
 	void setFiring(LobeModel * it);
