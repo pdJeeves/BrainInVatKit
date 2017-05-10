@@ -125,7 +125,7 @@ void LobeSettings::onSelectColor()
 }
 
 static inline
-int __attribute((const)) getRelaxRate(int rate)
+int attr_CONST getRelaxRate(int rate)
 {
 	double ratio = rate / (rate + 1.0);
 
